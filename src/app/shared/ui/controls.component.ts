@@ -14,7 +14,7 @@ import { IconComponent } from './icon.component';
         <button type="button" [class.on]="i18n.lang() === 'pl'" (click)="i18n.set('pl')">PL</button>
       </div>
       <button type="button" class="btn btn-secondary btn-icon" [attr.aria-label]="theme.isDark() ? t('theme.light') : t('theme.dark')" (click)="theme.toggle()">
-        <hg-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+        <hg-icon [name]="theme.isDark() ? 'moon' : 'sun'" />
       </button>
     </div>
   `,
