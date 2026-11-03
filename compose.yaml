@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build: .
+    image: harpagon-frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-https://api.harpagonapp.site}
+      API_HOST: ${API_HOST:-api.harpagonapp.site}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  db-data:

@@ -1,12 +1,14 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './core/theme/theme.service';
+import { ToastsComponent } from './shared/ui/toasts.component';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.css',
-  templateUrl: './app.html',
+  imports: [RouterOutlet, ToastsComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<router-outlet /><hg-toasts />`,
 })
 export class App {
-  protected readonly title = signal('HarpagonAppFrontend');
+  private readonly theme = inject(ThemeService);
 }

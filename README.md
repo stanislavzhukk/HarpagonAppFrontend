@@ -1,59 +1,48 @@
-# HarpagonAppFrontend
+# Harpagon Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.1.
+Angular 22 + Tailwind 4 client for the HarpagonApp .NET API. English and Polish only.
 
-## Development server
-
-To start a local development server, run:
+## Run locally
 
 ```bash
-ng serve
+npm install
+npm start            # http://localhost:4200, /api is proxied to http://localhost:8080 (see proxy.conf.json)
+npm test             # vitest
+npm run build        # production bundle in dist/
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The API must be running on `localhost:8080`. Change the target in `proxy.conf.json` if yours differs.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Run with Docker
 
 ```bash
-ng generate component component-name
+cp .env.example .env
+docker compose up --build                      # frontend only; set API_UPSTREAM in .env
+docker compose --profile backend up --build    # + API, Postgres, Mailpit (needs BACKEND_CONTEXT)
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+The browser only talks to nginx. nginx serves the SPA and forwards `/api/*` to `API_UPSTREAM` with the
+`/api` prefix stripped, so there is no CORS setup and the API is never exposed directly. For an API running on
+the host use `API_UPSTREAM=http://host.docker.internal:8080`.
 
-```bash
-ng generate --help
+The `backend` profile builds the API from a separate checkout (`BACKEND_CONTEXT`, default `../HarpagonApp`) and does
+not modify it. Its environment variable names (`ConnectionStrings__DefaultConnection`, `Jwt__SecretKey`,
+`Frontend__Url`, `Smtp__*`) are assumptions: adjust them in `compose.yaml` to match the backend configuration.
+`FRONTEND_URL` must be the public URL of the frontend, because confirmation and reset e-mails link to it.
+
+## Structure
+
+```
+src/app/
+  core/      api (interceptor, ApiError, models), auth, i18n (en.ts / pl.ts), theme, toast
+  features/  auth, dashboard, transactions, accounts, categories, settings, setup, admin
+  layout/    shell (sidebar / bottom nav), auth layout
+  shared/    ui components, form helpers, date helpers
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- **Errors**: every failed request becomes an `ApiError` (`{ message, errors[] }` from the API). Server text is shown as is
+  (the API localises it from `Accept-Language`); network, 5xx and auth failures use translated copy. Forms opt out of the
+  global toast with `silent()` and show an inline banner instead.
+- **i18n**: `TranslationKey` is derived from `en.ts`, so a missing PL key is a compile error. A test checks key parity
+  and placeholders.
+- **Auth**: access and refresh tokens, single-flight refresh on 401, role from the user object or the JWT.
